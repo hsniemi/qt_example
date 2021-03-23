@@ -9,7 +9,7 @@ router.get('/:id?',
       if (err) {
         response.json(err);
       } else {
-        response.json(dbResult);
+        response.json(dbResult[0]);
       }
     });
   } else {
@@ -30,7 +30,7 @@ function(request, response) {
     if (err) {
       response.json(err);
     } else {
-      response.json(request.body);
+      response.json("Person added");
     }
   });
 });
@@ -54,9 +54,25 @@ function(request, response) {
     if (err) {
       response.json(err);
     } else {
-      response.json(dbResult);
+      console.log(dbResult);
+      if(dbResult.affectedRows==1){
+        response.json("Person updated");
+      }
+      else{
+        response.json("Person does not exist");
+      }
     }
   });
 });
 
+router.post('/money_action', 
+function(request, response) {
+  person.moneyAction(request.body, function(err, dbResult) {
+    if (err) {
+      response.json(err);
+    } else {
+      response.json(dbResult);
+    }
+  });
+});
 module.exports = router;
