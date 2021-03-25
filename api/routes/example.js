@@ -9,11 +9,27 @@ router.get('/allpersons',
                 response.json(err);
             }
             else{
+                console.log(dbresult);
                 response.json(dbresult);
             }
         }
         )
     }
+);
+
+router.get('/oneperson/:id',
+    function(request,response){
+        example_sql.getOnePerson(request.params.id,
+            function(err,dbresult){
+                if(err){
+                    response.json(err);
+                }
+                else{
+                    console.log(dbresult);
+                    response.json(dbresult[0]);
+                }
+            })    
+        }
 );
 
 module.exports = router;
