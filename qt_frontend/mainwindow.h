@@ -21,10 +21,20 @@ public:
 private slots:
     void on_getAllPersons_clicked();
     void allPersonsSlot(QNetworkReply *reply);
+    void onePersonSlot(QNetworkReply *reply);
+    void fullNameSlot(QNetworkReply *reply);
+    void on_getOneperson_clicked();
+    void on_getFullName_clicked();
 
 private:
     Ui::MainWindow *ui;
     QNetworkAccessManager *ptrAllPersonsManager;
     QNetworkReply *ptrAllPersonsReply;
+
+    QNetworkAccessManager *ptrOnePersonManager;
+    QNetworkReply *ptrOnePersonReply;
+
+    QNetworkAccessManager *ptrFullNameManager;
+    QNetworkReply *ptrFullNameReply;
 };
 #endif // MAINWINDOW_H
