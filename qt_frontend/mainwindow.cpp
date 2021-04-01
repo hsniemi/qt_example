@@ -34,7 +34,7 @@ void MainWindow::allPersonsSlot(QNetworkReply*reply)
 {
     QByteArray response_data = reply->readAll();
     qDebug()<<response_data;
-    if(response_data.compare("-4078")==0){
+    if(response_data.compare("-4078")==0 || response_data.compare("")==0){
         ui->label_result->setText("Virhe tietokantayhteydessä");
     }
     else{
@@ -58,18 +58,23 @@ void MainWindow::allPersonsSlot(QNetworkReply*reply)
 void MainWindow::on_getOneperson_clicked()
 {
     QString id=ui->lineEditId->text();
-    QString site_url="http://localhost:3000/example/oneperson/"+id;
-    QString credentials="automat123:pass123";
-    QNetworkRequest request(site_url);
-    request.setHeader(QNetworkRequest::ContentTypeHeader,"application/json");
-    QByteArray data = credentials.toLocal8Bit().toBase64();
-    QString headerData = "Basic " + data;
-    request.setRawHeader( "Authorization", headerData.toLocal8Bit() );
-    ptrOnePersonManager = new QNetworkAccessManager(this);
+    if(id==""){
+        ui->label_result->setText("Syötä asiakas ID");
+    }
+    else{
+        QString site_url="http://localhost:3000/example/oneperson/"+id;
+        QString credentials="automat123:pass123";
+        QNetworkRequest request(site_url);
+        request.setHeader(QNetworkRequest::ContentTypeHeader,"application/json");
+        QByteArray data = credentials.toLocal8Bit().toBase64();
+        QString headerData = "Basic " + data;
+        request.setRawHeader( "Authorization", headerData.toLocal8Bit() );
+        ptrOnePersonManager = new QNetworkAccessManager(this);
 
-    connect(ptrOnePersonManager, SIGNAL(finished (QNetworkReply*)),
-    this, SLOT(onePersonSlot(QNetworkReply*)));
-    ptrOnePersonReply = ptrOnePersonManager->get(request);
+        connect(ptrOnePersonManager, SIGNAL(finished (QNetworkReply*)),
+        this, SLOT(onePersonSlot(QNetworkReply*)));
+        ptrOnePersonReply = ptrOnePersonManager->get(request);
+    }
 }
 
 void MainWindow::onePersonSlot(QNetworkReply *reply)
@@ -125,13 +130,57 @@ void MainWindow::fullNameSlot(QNetworkReply *reply)
         ui->label_result->setText("Tunnuksella ei löydy asiakasta");
     }
     else{
-//        QJsonDocument json_doc=QJsonDocument::fromJson(response_data);
-//        QJsonObject json_object=json_doc.object();
-//        QString person=json_object["fullname"].toString()+"\r\n";
-//        ui->label_result->setText(person);
-        ui->label_result->setText(response_data);
+        QJsonDocument json_doc=QJsonDocument::fromJson(response_data);
+        QJsonObject json_object=json_doc.object();
+        QString person=json_object["fullname"].toString()+"\r\n";
+        ui->label_result->setText(person);
     }
     ptrFullNameReply->deleteLater();
     reply->deleteLater();
     ptrFullNameManager->deleteLater();
+}
+
+void MainWindow::on_buttonRaise_clicked()
+{
+    QString id=ui->lineEditRaiseId->text();
+    QString amount=ui->lineEditRaiseAmount->text();
+    QJsonObject json_obj;
+    json_obj.insert("id",id);
+    json_obj.insert("amount",amount);
+    QString site_url="http://localhost:3000/person/money_action";
+    QString credentials="automat123:pass123";
+    QNetworkRequest request((site_url));
+    request.setHeader(QNetworkRequest::ContentTypeHeader,
+    "application/json");
+    QByteArray data = credentials.toLocal8Bit().toBase64();
+    QString headerData = "Basic " + data;
+    request.setRawHeader( "Authorization", headerData.toLocal8Bit() );
+    ptrRaiseManager = new QNetworkAccessManager(this);
+
+    connect(ptrRaiseManager, SIGNAL(finished (QNetworkReply*)),
+    this, SLOT(RaiseSlot(QNetworkReply*)));
+    ptrRaiseReply = ptrRaiseManager->post(request,QJsonDocument(json_obj).toJson());
+}
+
+void MainWindow::RaiseSlot(QNetworkReply *reply)
+{
+    QByteArray response_data = reply->readAll();
+    qDebug()<<response_data;
+    if(response_data.compare("-4078")==0){
+        ui->label_result->setText("Virhe tietokantayhteydessä");
+    }
+    else if(response_data.compare("0")==0){
+        ui->label_result->setText("Toimenpide ei onnistu");
+    }
+    else{
+        ui->label_result->setText("Toimenpide onnistui");
+    }
+    ptrRaiseReply->deleteLater();
+    reply->deleteLater();
+    ptrRaiseManager->deleteLater();
+}
+
+void MainWindow::on_lineEditId_textChanged(const QString &arg1)
+{
+    ui->getFullName->setEnabled(true);
 }
